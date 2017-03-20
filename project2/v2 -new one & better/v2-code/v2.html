@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Antibiotic</title>
+	</head>
+	<!-->
+		red:#FF2D2D
+		black:#000000
+	</-->
+	<style>
+		.OPRect{
+			fill:#000000;	
+		}
+		.NERect{
+			fill:#FF2D2D;
+		}
+		.axis path,
+		.axis line{
+			fill: none;
+			stroke: black;
+			shape-rendering: crispEdges;
+		}
+		.axis text{
+			font-family: sans-serif;
+			font-size: 11px;
+		}
+		.Name{
+			text-align:right;
+			font-size: 14px;
+			font-family:goudy old style;
+		}
+		.tName{
+			font-size: 14px;
+			font-family:georgia;
+		}
+	</style>
+	
+	<body>
+		<script src="d3.min.js"></script>
+		<script>
+			var height = 800;
+			var width = 900;
+			
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width",width)
+						.attr("height",height);
+						
+			var dataP = [162,143,139,122,81,162,143,2,81,27,2,3,68,2,81,54];
+			var dataS = [135,53,108,122,81,50,54,81,73,92,79,62,108,73,92,84];
+			var dataN = [139,54,162,162,108,54,38,75,127,108,81,73,108,92,138,109];
+			
+			
+			var ANames = ["Brucella anthracis","Diplococcus pneumoniae","Staphylococcus albus",
+						"Staphylococcus aureus","Streptococcus fecalis","Streptococcus hemolyticus",
+						"Streptococcus viridans","Aerobacter aerogenes","Brucella abortus",
+						"Escherichia coli","Klebsiella pneumoniae","Mycobacterium tuberculosis",
+						"Proteus vulgaris","Pseudomonas aeruginosa","Salmonella (Eberthella) typhosa",
+						"Salmonella schottmuelleri"];
+			
+			var PSNames = ["Penicilin","Streptomycin","Neomycin"];
+			var rectsP = svg.selectAll(".PRect")
+							.data(dataP)
+							.enter()
+							.append("rect")
+							.attr("class",function(d,i){
+								if(i < 7) return "OPRect";
+								else return "NERect";
+							})
+							.attr("x",200)
+							.attr("y",function(d,i){return 100+25*i})
+							.attr("width",function(d){return d})
+							.attr("height",16);
+							
+			var rectsS = svg.selectAll(".SRect")
+							.data(dataS)
+							.enter()
+							.append("rect")
+							.attr("class",function(d,i){
+								if(i < 7) return "OPRect";
+								else return "NERect";
+							})
+							.attr("x",380)
+							.attr("y",function(d,i){return 100+25*i})
+							.attr("width",function(d){return d})
+							.attr("height",16);				
+			
+			var rectsN = svg.selectAll(".NRect")
+							.data(dataN)
+							.enter()
+							.append("rect")
+							.attr("class",function(d,i){
+								if(i < 7) return "OPRect";
+								else return "NERect";
+							})
+							.attr("x",560)
+							.attr("y",function(d,i){return 100+25*i})
+							.attr("width",function(d){return d})
+							.attr("height",16);	
+			
+			var aname = svg.selectAll("Aname")
+							.data(ANames)
+							.enter()
+							.append("text")
+							.text(function(d){return d})
+							.attr("width",function(d){return d.length*6.5})
+							.attr("class","Name")
+							.attr("x",function(d,i){
+								if(i == 1 || i == 13) return 200-d.length*6.5-10;
+								else if(i == 14) return 200-d.length*6.5+10;
+								else return 200-d.length*6.5;
+							})
+							.attr("y",function(d,i){return 115+25*i});
+						
+			var psn = svg.selectAll("psn")
+						  .data(PSNames)
+						  .enter()
+						  .append("text")
+						  .text(function(d){return d})
+						  .attr("class","tName")
+						  .attr("x",function(d,i){return 200+i*180})
+						  .attr("y",80);
+						  
+			var linear = d3.scale.log()
+				.domain([0.001, 1000])
+				.range([0, 162]);
+			var axis = d3.svg.axis()
+				.scale(linear)      
+				.orient("bottom");        
+
+			svg.append("g")
+			    .attr("class","axis")
+			    .attr("transform","translate(200,500)")
+		    	.call(axis);
+			svg.append("g")
+			    .attr("class","axis")
+			    .attr("transform","translate(380,500)")
+		    	.call(axis);
+			svg.append("g")
+			    .attr("class","axis")
+			    .attr("transform","translate(560,500)")
+		    	.call(axis);
+			
+			var colorNames = ["Gram - Positive","Gram - Negative"];
+			svg.selectAll("colorn")
+				.data(colorNames)
+				.enter()
+				.append("text")
+				.text(function(d){return d})
+				.attr("x",775)
+				.attr("y",function(d,i){return 152+i*25})
+				.attr("font-family","Times New Roman")
+				.attr("font-size","13px");
+			var color = ["#000000","#FF2D2D"];
+			svg.selectAll("color")
+				.data(color)
+				.enter()
+				.append("rect")
+				.attr("x",755)
+				.attr("y",function(d,i){return 141+i*25})
+				.attr("width",13)
+				.attr("height",13)
+				.attr("fill",function(d){return d});
+			
+			svg.selectAll("math")
+				.data([1,2,3])
+				.enter()
+				.append("text")
+				.text(function(d,i){
+					if(i == 0) return "1";
+					else if(i == 1) return "——————";
+					else return "concentration";
+				})
+				.attr("x",function(d,i){
+					if(i == 0) return 800;
+					else if(i == 1) return 760;
+					else return 765;
+				})
+				.attr("y",function(d,i){return 350+10*i})
+				.attr("font-family","Times New Roman")
+				.attr("font-size","16px");
+		</script>
+	</body>
+	
+</html>

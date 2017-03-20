@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <style>
+      body {
+          margin: 0px;
+          padding: 0px 40px;
+          font-family:Arial, sans-serif;
+          color: #232528;
+      }
+    </style>
+</head>
+<body>
+    <h2>Squarified Treemap</h2>
+    <p>
+      <canvas id="myCanvas" width="700" height="500"></canvas>
+    </p>
+    <script src="treemap.js"></script>
+	<script>
+		/*function Click(){
+			//alert('版权所有(C)XXXltd.');
+			window.event.returnValue=false;
+		}
+		document.oncontextmenu=Click;
+		*/
+	</script>
+    <script>
+		/*
+			优化：
+				1.nested(嵌套结构)
+				2.squarified(正方化) 
+				（Squarified Treemap algorithm from Mark Bruls, Kees Huizing, and Jarke J. vanWijk）
+		*/
+		//数据集（树结构，默认三层，数组表示）
+		var data1 = [10, 10, 10, 5, 5, 6, 4, 5, 5,	//60
+					9, 6, 5, 8, 7, 7, 3, 5,			//50
+					7, 6, 6, 6, 10, 5,				//40
+					10, 5, 10, 5,					//30	
+					6, 2, 4, 4, 4,					//20
+					10];							//10
+					
+		var data2 = [0,2,5,7,9,
+					12,14,16,17,
+					21,22,23,
+					25,27,
+					29,31,32,
+					33];
+					
+		var data3 = [0,4,8,11,13,16,17];
+		
+		var canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+		
+		
+		var width = canvas.width;
+		var height = canvas.height;
+		//首先添加底层画布
+		context.fillStyle = "#B73779";
+		context.fillRect(0,0,width,height);
+		
+		var renderData = [];
+		var left, right;
+		//首先计算第一层，即总体布局
+		for(var i = 0; i < data3.length - 1; ++i){
+			left = data2[data3[i]];
+			right = data2[data3[i+1]];
+			renderData.push(data1.slice(left, right)
+							.reduce(function(pre,nxt){return pre + nxt;}));
+		}
+		
+		var rects;
+        var myTreemap = new Treemap(context);
+		//执行绘制并获得所有绘制的矩形的信息
+		setTimeout(function(){
+			rects = myTreemap.draw(renderData, 0, 0, width-3, height-3, 1);//level 1
+		},300);
+		//在第一层的基础上计算孩子节点的分布
+		var renderData2 = [];
+		for(var j = 0; j < data2.length - 1; ++j){
+			renderData2.push(data1.slice(data2[j], data2[j+1])
+						.reduce(function(pre,nxt){return pre + nxt;}));
+		}
+		
+ 
+		//使用setTimeout的原因：
+		//1.显示整个绘制过程
+		//2.当多个绘制对象同时工作时，会存在变量共用的情况（显示某个变量不存在）
+		setTimeout(function(){
+			var sx1, sy1, sx2, sy2, edge = 2, res;
+			var TreeMap = [];
+			var returnRects = [];
+			//为了体现nested特点，绘制过程中需要适当缩小长和宽以便显示底层画布，展示上一级的信息
+			for(var i = 0; i < rects.length; ++i){
+				TreeMap[i] = new Treemap(context);
+				sx1 = rects[i].x1 + edge;
+				sy1 = rects[i].y1 + edge;
+				sx2 = rects[i].x2 - edge;
+				sy2 = rects[i].y2 - edge;
+				//需要跳过没有子结点的矩阵的绘制，避免重复绘制，体现出数据等级
+				if(renderData2.slice(data3[i],data3[i+1]).length == 1) continue;
+				returnRects = returnRects.concat(TreeMap[i].draw(renderData2.slice(data3[i],data3[i+1]), sx1, sy1, sx2, sy2, 2));
+			}//level 2
+			
+			setTimeout(function(){
+				var sx1, sy1, sx2, sy2, edge = 2, res;
+				var TreeMap = [];
+				for(var i = 0; i < returnRects.length; ++i){
+					TreeMap[i] = new Treemap(context);
+					sx1 = returnRects[i].x1 + edge;
+					sy1 = returnRects[i].y1 + edge;
+					sx2 = returnRects[i].x2 - edge;
+					sy2 = returnRects[i].y2 - edge;
+					//需要跳过没有子结点的矩阵的绘制，避免重复绘制，体现出数据等级
+					if(data1.slice(data2[i],data2[i+1]).length == 1) continue;
+					TreeMap[i].draw(data1.slice(data2[i],data2[i+1]), sx1, sy1, sx2, sy2, 3);
+				}//level 3
+			},1000);
+		},1000);
+		
+		
+    </script>
+</body>
+</html>
